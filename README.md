@@ -6,7 +6,7 @@
 
 ## 下载与安装
 
-在 [Releases](https://github.com/AlfrZhou/BingWallpaperLite/releases/latest) 下载 `BingWallpaperLite-Setup-1.1.5.exe`，双击安装。已有版本直接覆盖安装即可，配置会保留。
+在 [Releases](https://github.com/AlfrZhou/BingWallpaperLite/releases/latest) 下载 `BingWallpaperLite-Setup-1.1.6.exe`，双击安装。已有版本直接覆盖安装即可，配置会保留。
 
 - 无需管理员权限。
 - 可选择登录后启动、创建桌面快捷方式。
@@ -46,7 +46,7 @@
 | 文件 | 用途 | 大小 |
 | --- | --- | --- |
 | `BingWallpaperLite.exe` | 原生托盘与定时调度 | 约 57 KiB |
-| `BingWallpaperHelper.exe` | 设置窗口或图片更新，结束后退出 | 约 82 KiB |
+| `BingWallpaperHelper.exe` | 设置窗口或图片更新，结束后退出 | 约 85 KiB |
 
 本机空闲实测：托盘私有工作集约 **1 MiB**，私有内存约 **1.8 MiB**；包含共享系统 DLL 的总工作集约 **11 MiB**。打开设置、下载图片或设置壁纸时会产生额外占用，数值也会随系统环境变化。
 

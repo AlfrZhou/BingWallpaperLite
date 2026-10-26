@@ -107,7 +107,8 @@ namespace BingWallpaperLite
         private readonly PhotoCard photo;
         private readonly Badge badge;
         private readonly Label scheduleLabel, saveHint;
-        private readonly CompactSelect market, resolution, daily, keep;
+        private readonly CompactSelect market, resolution, keep;
+        private readonly TimeInput daily;
         private readonly CheckBox startup;
         private readonly Toggle automatic;
         private readonly ActionButton update, save;
@@ -179,9 +180,7 @@ namespace BingWallpaperLite
             if (currentMarket == null) { currentMarket = config.Market; market.Items.Add(currentMarket); }
             market.SelectedItem = currentMarket;
             resolution = Combo("图片分辨率"); resolution.Margin = new Padding(5, 2, 0, 2); resolution.Items.AddRange(new[] { "UHD", "1920x1080", "1920x1200", "2560x1440" }); resolution.SelectedItem = config.Resolution;
-            daily = Combo("每日更新时间");
-            for (int h = 0; h < 24; h++) for (int m = 0; m < 60; m++) daily.Items.Add(h.ToString("00") + ":" + m.ToString("00"));
-            daily.SelectedItem = config.DailyTime;
+            daily = new TimeInput { AccessibleName = "每日更新时间", Dock = DockStyle.Fill, Margin = new Padding(0, 2, 5, 2), BackColor = Color.White, TimeText = config.DailyTime };
             keep = Combo("保留图片数量"); keep.Margin = new Padding(5, 2, 0, 2); for (int i = 1; i <= 30; i++) keep.Items.Add(i.ToString()); keep.SelectedItem = config.KeepImages.ToString();
             fields.Controls.Add(market, 0, 1); fields.Controls.Add(resolution, 1, 1); fields.Controls.Add(daily, 0, 3); fields.Controls.Add(keep, 1, 3); settings.Controls.Add(fields, 0, 1);
 
@@ -205,7 +204,7 @@ namespace BingWallpaperLite
             footer.Controls.Add(logLink, 1, 1);
             layout.Controls.Add(footer, 0, 4);
 
-            market.SelectedIndexChanged += Changed; resolution.SelectedIndexChanged += Changed; daily.SelectedIndexChanged += Changed;
+            market.SelectedIndexChanged += Changed; resolution.SelectedIndexChanged += Changed; daily.ValueChanged += Changed;
             keep.SelectedIndexChanged += Changed; startup.CheckedChanged += Changed; automatic.CheckedChanged += Changed;
             initializing = false; RefreshFile(); Poll();
             timer = new System.Windows.Forms.Timer { Interval = 900 }; timer.Tick += delegate { Poll(); }; if (!rendering) timer.Start();
@@ -225,7 +224,7 @@ namespace BingWallpaperLite
         {
             try
             {
-                var updated = new Configuration { Market = market.SelectedItem.ToString().Split(' ')[0], Resolution = resolution.SelectedItem.ToString(), DailyTime = daily.SelectedItem.ToString(), KeepImages = int.Parse(keep.SelectedItem.ToString()), AutoUpdate = automatic.Checked };
+                var updated = new Configuration { Market = market.SelectedItem.ToString().Split(' ')[0], Resolution = resolution.SelectedItem.ToString(), DailyTime = daily.TimeText, KeepImages = int.Parse(keep.SelectedItem.ToString()), AutoUpdate = automatic.Checked };
                 updated.Validate(); client.Startup = startup.Checked; Files.Save(Path.Combine(client.Root, "config.json"), updated); client.Reload();
                 config = updated; dirty = false; saveHint.Text = "已保存"; saveHint.ForeColor = Style.Green; Poll();
             }
