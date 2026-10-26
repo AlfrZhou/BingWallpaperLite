@@ -1,0 +1,29 @@
+name: 问题反馈
+description: 运行异常、界面问题或安全软件拦截
+body:
+  - type: input
+    id: version
+    attributes:
+      label: 软件版本
+      placeholder: 例如 1.1.5
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows 版本
+      placeholder: 例如 Windows 11 24H2，64 位
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 问题与复现步骤
+      description: 写明做了什么、预期结果和实际结果。界面问题可以附截图。
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志或检测信息
+      description: 可附上 update.log 中对应的错误。若涉及报毒，请提供安全软件名称、检测名称、文件名及 SHA-256；提交前去掉个人路径等信息。
