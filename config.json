@@ -1,6 +1,6 @@
 {
   "Market": "zh-CN",
-  "Resolution": "UHD",
+  "Resolution": "Auto",
   "DailyTime": "08:05",
   "KeepImages": 1,
   "AutoUpdate": true

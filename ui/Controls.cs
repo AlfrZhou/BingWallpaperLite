@@ -9,11 +9,11 @@ namespace BingWallpaperLite
 {
     internal static class Style
     {
-        internal static readonly Color Ink = Color.FromArgb(27, 47, 43);
-        internal static readonly Color Muted = Color.FromArgb(108, 125, 119);
-        internal static readonly Color Green = Color.FromArgb(15, 119, 96);
-        internal static readonly Color Background = Color.FromArgb(244, 247, 246);
-        internal static readonly Color Line = Color.FromArgb(225, 233, 229);
+        internal static readonly Color Ink = Color.FromArgb(24, 42, 60);
+        internal static readonly Color Muted = Color.FromArgb(104, 123, 140);
+        internal static readonly Color Accent = Color.FromArgb(0, 120, 212);
+        internal static readonly Color Background = Color.FromArgb(244, 248, 252);
+        internal static readonly Color Line = Color.FromArgb(222, 232, 241);
         internal static string Family = "Microsoft YaHei UI";
         internal static Font Font(float size, bool bold) { return new Font(Family, size, bold ? FontStyle.Bold : FontStyle.Regular); }
         internal static GraphicsPath Round(RectangleF rect, float radius)
@@ -33,13 +33,13 @@ namespace BingWallpaperLite
             // Paint even the corners and empty text area: a double buffer can contain another control's old pixels.
             using (var fill = new SolidBrush(color)) graphics.FillRectangle(fill, control.ClientRectangle);
         }
-        internal static void PaintField(Control control, Graphics graphics, bool active, bool hovered, bool invalid = false)
+        internal static void PaintField(Control control, Graphics graphics, bool active, bool hovered)
         {
             PaintBackground(control, graphics);
             graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            Color border = invalid ? Color.FromArgb(185, 68, 56) : active ? Green : hovered ? Color.FromArgb(164, 188, 176) : Line;
+            Color border = active ? Accent : hovered ? Color.FromArgb(151, 190, 222) : Line;
             using (var path = Round(new RectangleF(.5F, .5F, control.Width - 1, control.Height - 1), 5 * graphics.DpiX / 96F))
-            using (var fill = new SolidBrush(control.Enabled ? Color.White : Color.FromArgb(244, 247, 245)))
+            using (var fill = new SolidBrush(control.Enabled ? Color.White : Color.FromArgb(243, 247, 251)))
             using (var pen = new Pen(border)) { graphics.FillPath(fill, path); graphics.DrawPath(pen, path); }
         }
         internal static void PaintText(Graphics graphics, string text, Font font, Rectangle bounds, Color color, TextFormatFlags flags)
@@ -97,12 +97,12 @@ namespace BingWallpaperLite
         protected override void OnPaint(PaintEventArgs e)
         {
             Style.PaintBackground(this, e.Graphics);
-            var color = !Enabled ? Color.FromArgb(221, 229, 225) : Primary ? (hover ? Color.FromArgb(9, 98, 79) : Style.Green) : (hover ? Color.FromArgb(237, 247, 242) : Color.White);
+            var color = !Enabled ? Color.FromArgb(222, 231, 239) : Primary ? (hover ? Color.FromArgb(0, 98, 178) : Style.Accent) : (hover ? Color.FromArgb(235, 245, 255) : Color.White);
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             using (var path = Style.Round(new RectangleF(.5F, .5F, Width - 1, Height - 1), 7))
             using (var brush = new SolidBrush(color))
             using (var pen = new Pen(Primary ? color : Style.Line)) { e.Graphics.FillPath(brush, path); e.Graphics.DrawPath(pen, path); }
-            Style.PaintText(e.Graphics, Text, Font, ClientRectangle, Enabled ? (Primary ? Color.White : Style.Green) : Style.Muted,
+            Style.PaintText(e.Graphics, Text, Font, ClientRectangle, Enabled ? (Primary ? Color.White : Style.Accent) : Style.Muted,
                 TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
             if (Focused && ShowFocusCues) Style.PaintFocus(e.Graphics, Rectangle.Inflate(ClientRectangle, -5, -5));
         }
@@ -116,7 +116,7 @@ namespace BingWallpaperLite
             Style.PaintBackground(this, e.Graphics);
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             using (var path = Style.Round(new RectangleF(1, 2, Width - 2, Height - 4), (Height - 4) / 2F))
-            using (var fill = new SolidBrush(Checked ? Style.Green : Color.FromArgb(201, 212, 206))) e.Graphics.FillPath(fill, path);
+            using (var fill = new SolidBrush(Checked ? Style.Accent : Color.FromArgb(201, 213, 224))) e.Graphics.FillPath(fill, path);
             float d = Height - 10;
             using (var fill = new SolidBrush(Color.White)) e.Graphics.FillEllipse(fill, Checked ? Width - d - 5 : 5, 5, d, d);
             if (Focused && ShowFocusCues) Style.PaintFocus(e.Graphics, Rectangle.Inflate(ClientRectangle, -2, -2));
@@ -132,8 +132,8 @@ namespace BingWallpaperLite
             float scale = e.Graphics.DpiX / 96F, side = 13 * scale, top = (Height - side) / 2;
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             using (var path = Style.Round(new RectangleF(.5F, top, side, side), 3 * scale))
-            using (var fill = new SolidBrush(Checked ? Style.Green : Color.White))
-            using (var pen = new Pen(Checked ? Style.Green : Color.FromArgb(179, 195, 186)))
+            using (var fill = new SolidBrush(Checked ? Style.Accent : Color.White))
+            using (var pen = new Pen(Checked ? Style.Accent : Color.FromArgb(173, 194, 212)))
             { e.Graphics.FillPath(fill, path); e.Graphics.DrawPath(pen, path); }
             if (Checked) using (var pen = new Pen(Color.White, 1.5F * scale))
                 e.Graphics.DrawLines(pen, new[] { new PointF(3 * scale, top + 6.5F * scale), new PointF(5.5F * scale, top + 9 * scale), new PointF(10.5F * scale, top + 4 * scale) });
@@ -153,12 +153,19 @@ namespace BingWallpaperLite
         {
             Style.PaintBackground(this, e.Graphics);
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            Color text = Busy ? Color.FromArgb(155, 99, 18) : Paused ? Style.Muted : Style.Green;
-            Color bg = Busy ? Color.FromArgb(253, 243, 220) : Paused ? Color.FromArgb(231, 237, 234) : Color.FromArgb(226, 244, 234);
+            Color text = Busy ? Color.FromArgb(155, 99, 18) : Paused ? Style.Muted : Style.Accent;
+            Color bg = Busy ? Color.FromArgb(253, 243, 220) : Paused ? Color.FromArgb(231, 238, 245) : Color.FromArgb(225, 241, 255);
             using (var path = Style.Round(new RectangleF(0, 0, Width - 1, Height - 1), 14))
             using (var brush = new SolidBrush(bg)) e.Graphics.FillPath(brush, path);
-            using (var brush = new SolidBrush(text)) e.Graphics.FillEllipse(brush, 12, Height / 2 - 3, 6, 6);
-            Style.PaintText(e.Graphics, Text, Font, new Rectangle(25, 0, Width - 29, Height), text, TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+            float scale = e.Graphics.DpiX / 96F, dot = 5 * scale, gap = 7 * scale;
+            float textWidth;
+            using (var format = new StringFormat(StringFormat.GenericTypographic))
+                textWidth = e.Graphics.MeasureString(Text, Font, int.MaxValue, format).Width;
+            int width = (int)Math.Ceiling(Math.Min(textWidth, Width - dot - gap - 12 * scale));
+            float left = (Width - width - dot - gap) / 2;
+            using (var brush = new SolidBrush(text)) e.Graphics.FillEllipse(brush, left, (Height - dot) / 2, dot, dot);
+            Style.PaintText(e.Graphics, Text, Font, new Rectangle((int)Math.Round(left + dot + gap), 0, width, Height), text,
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
         }
     }
     internal sealed class CompactSelect : Control
@@ -253,9 +260,9 @@ namespace BingWallpaperLite
             list.DrawItem += delegate(object sender, DrawItemEventArgs args)
             {
                 if (args.Index < 0) return; bool active = (args.State & DrawItemState.Selected) != 0;
-                using (var fill = new SolidBrush(active ? Color.FromArgb(228, 244, 235) : Color.White)) args.Graphics.FillRectangle(fill, args.Bounds);
+                using (var fill = new SolidBrush(active ? Color.FromArgb(225, 241, 255) : Color.White)) args.Graphics.FillRectangle(fill, args.Bounds);
                 Style.PaintText(args.Graphics, Items[args.Index], Font, new Rectangle(args.Bounds.X + 9, args.Bounds.Y, args.Bounds.Width - 15, args.Bounds.Height),
-                    active ? Style.Green : Style.Ink, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+                    active ? Style.Accent : Style.Ink, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
             };
             var host = new ToolStripControlHost(list) { Margin = Padding.Empty, Padding = Padding.Empty, AutoSize = false, Size = list.Size };
             var dropdown = new ToolStripDropDown { Padding = new Padding(1), BackColor = Style.Line, AutoClose = true };
@@ -288,69 +295,38 @@ namespace BingWallpaperLite
             public override void DoDefaultAction() { owner.Open(); }
         }
     }
-    internal sealed class TimeInput : UserControl
+    internal sealed class TimeSelect : TableLayoutPanel
     {
-        private readonly MaskedTextBox editor;
-        private bool hovered;
+        private readonly CompactSelect hour, minute;
         internal event EventHandler ValueChanged;
         internal string TimeText
         {
-            get
+            get { return hour.SelectedItem + ":" + minute.SelectedItem; }
+            set
             {
-                DateTime value;
-                if (!TryRead(out value)) throw new ArgumentException("请输入 00:00–23:59 的时间。");
-                return value.ToString("HH:mm", CultureInfo.InvariantCulture);
+                var time = TimeSpan.ParseExact(value, @"hh\:mm", System.Globalization.CultureInfo.InvariantCulture);
+                hour.SelectedIndex = time.Hours; minute.SelectedIndex = time.Minutes / 5;
             }
-            set { editor.Text = value; }
         }
-        private bool TryRead(out DateTime value)
-        { value = default(DateTime); return editor.MaskCompleted && DateTime.TryParseExact(editor.Text, "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out value); }
-        public TimeInput()
+        public TimeSelect()
         {
-            Font = Style.Font(9.5F, false); Size = new Size(140, 32); Padding = new Padding(9, 0, 9, 0); TabStop = false;
-            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.Opaque | ControlStyles.ResizeRedraw, true);
-            editor = new MaskedTextBox("00:00") { BorderStyle = BorderStyle.None, Font = Font, ForeColor = Style.Ink,
-                BackColor = Color.White, AsciiOnly = true, Culture = CultureInfo.InvariantCulture, AccessibleName = "每日更新时间", Text = "08:05" };
-            Controls.Add(editor);
-            editor.TextChanged += delegate { Invalidate(); var changed = ValueChanged; if (changed != null) changed(this, EventArgs.Empty); };
-            editor.Enter += delegate { Invalidate(); };
-            editor.Leave += delegate { Invalidate(); };
-            editor.MouseEnter += delegate { hovered = true; Invalidate(); };
-            editor.MouseLeave += delegate { hovered = false; Invalidate(); };
-            editor.KeyDown += delegate(object sender, KeyEventArgs e)
-            {
-                if (e.Control && e.KeyCode == Keys.A) { editor.SelectAll(); e.SuppressKeyPress = true; }
-                else if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down)
-                {
-                    DateTime value;
-                    if (TryRead(out value))
-                    {
-                        int segment = editor.SelectionStart < 3 ? 0 : 3, delta = e.KeyCode == Keys.Up ? 1 : -1;
-                        TimeText = (segment == 0 ? value.AddHours(delta) : value.AddMinutes(delta)).ToString("HH:mm", CultureInfo.InvariantCulture);
-                        editor.Select(segment, 2);
-                    }
-                    e.SuppressKeyPress = true;
-                }
-            };
+            Size = new Size(145, 32); ColumnCount = 3; RowCount = 1; Margin = Padding.Empty;
+            ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 12));
+            ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            hour = new CompactSelect { AccessibleName = "更新小时", Dock = DockStyle.Fill, Margin = Padding.Empty };
+            minute = new CompactSelect { AccessibleName = "更新分钟", Dock = DockStyle.Fill, Margin = Padding.Empty };
+            for (int i = 0; i < 24; i++) hour.Items.Add(i.ToString("00"));
+            for (int i = 0; i < 60; i += 5) minute.Items.Add(i.ToString("00"));
+            var colon = Style.Label(":", 10, Style.Muted, false); colon.Dock = DockStyle.Fill;
+            colon.TextAlign = ContentAlignment.MiddleCenter; colon.Margin = Padding.Empty;
+            Controls.Add(hour, 0, 0); Controls.Add(colon, 1, 0); Controls.Add(minute, 2, 0);
+            TimeText = "08:05";
+            hour.SelectedIndexChanged += Changed; minute.SelectedIndexChanged += Changed;
         }
-        protected override void OnLayout(LayoutEventArgs e)
-        {
-            base.OnLayout(e);
-            if (editor == null) return;
-            int inset = Padding.Left, height = editor.PreferredHeight;
-            editor.SetBounds(inset, Math.Max(1, (Height - height) / 2), Math.Max(1, Width - inset * 2), height);
-        }
-        protected override void OnFontChanged(EventArgs e) { base.OnFontChanged(e); if (editor != null) { editor.Font = Font; PerformLayout(); } }
-        protected override void OnEnabledChanged(EventArgs e)
-        { base.OnEnabledChanged(e); if (editor != null) editor.BackColor = Enabled ? Color.White : Color.FromArgb(244, 247, 245); Invalidate(); }
-        protected override void OnMouseEnter(EventArgs e) { hovered = true; Invalidate(); base.OnMouseEnter(e); }
-        protected override void OnMouseLeave(EventArgs e) { hovered = false; Invalidate(); base.OnMouseLeave(e); }
-        protected override void OnClick(EventArgs e) { editor.Focus(); base.OnClick(e); }
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            DateTime value;
-            Style.PaintField(this, e.Graphics, ContainsFocus, hovered, editor.MaskCompleted && !TryRead(out value));
-        }
+        private void Changed(object sender, EventArgs e)
+        { var changed = ValueChanged; if (changed != null) changed(this, EventArgs.Empty); }
     }
     internal sealed class PhotoCard : Control
     {

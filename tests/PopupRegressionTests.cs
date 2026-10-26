@@ -63,9 +63,9 @@ namespace BingWallpaperLite
         private static CompactSelect Select(Form form, int index)
         {
             var select = new CompactSelect { Location = new Point(12 + index % 2 * 170, 12 + index / 2 * 70), Size = new Size(145, 34) };
-            int count = index == 2 ? 1440 : index == 3 ? 30 : 4;
-            for (int i = 0; i < count; i++) select.Items.Add(index == 2 ? (i / 60).ToString("00") + ":" + (i % 60).ToString("00") : "Option " + i);
-            select.SelectedIndex = index == 2 ? 485 : 0; form.Controls.Add(select); return select;
+            int count = index == 2 ? 24 : index == 3 ? 12 : 4;
+            for (int i = 0; i < count; i++) select.Items.Add("Option " + i);
+            select.SelectedIndex = 0; form.Controls.Add(select); return select;
         }
         private static void Run()
         {
@@ -129,37 +129,33 @@ namespace BingWallpaperLite
         }
         private static void CheckTimeInput()
         {
-            using (var input = new TimeInput())
+            using (var form = new OffscreenForm())
+            using (var input = new TimeSelect { Location = new Point(12, 12) })
             {
-                var editor = (MaskedTextBox)input.Controls[0];
-                int changes = 0; input.ValueChanged += delegate { changes++; };
-                foreach (string valid in new[] { "00:00", "08:05", "12:30", "23:59" })
+                form.Controls.Add(input); form.Show();
+                var hour = (CompactSelect)input.GetControlFromPosition(0, 0);
+                var minute = (CompactSelect)input.GetControlFromPosition(2, 0);
+                Check(hour.Items.Count == 24 && minute.Items.Count == 12, "Unexpected time option counts.");
+                for (int i = 0; i < 12; i++) Check(minute.Items[i] == (i * 5).ToString("00"), "Minutes must use five-minute steps.");
+                foreach (string valid in new[] { "00:00", "08:05", "12:30", "23:55" })
                 {
                     input.TimeText = valid;
-                    Check(input.TimeText == valid, "Time input changed a valid value.");
+                    Check(input.TimeText == valid, "Time selection changed a valid value.");
                 }
-                Check(changes > 0, "Editing the time did not notify settings.");
-                foreach (string invalid in new[] { "24:00", "12:60", "99:99", "", "08:" })
+                input.TimeText = "08:07";
+                Check(input.TimeText == "08:05", "Legacy minutes did not round down to the nearest step.");
+                int changes = 0; input.ValueChanged += delegate { changes++; };
+                hour.SelectedIndex = 9; minute.SelectedIndex = 3;
+                Check(input.TimeText == "09:15" && changes == 2, "Time selection did not notify settings.");
+                foreach (var select in new[] { hour, minute })
                 {
-                    input.TimeText = invalid;
-                    bool rejected = false;
-                    try { string ignored = input.TimeText; } catch (ArgumentException) { rejected = true; }
-                    Check(rejected, "Invalid time was accepted: " + invalid);
+                    Invoke(select, "Open"); var dropdown = Prepare(select);
+                    Check(dropdown.Visible, "Time dropdown did not open.");
+                    dropdown.Close(ToolStripDropDownCloseReason.AppClicked);
+                    Check(!dropdown.IsDisposed, "Time dropdown was disposed on close.");
                 }
-                input.TimeText = "23:59"; editor.Select(3, 2);
-                var up = new KeyEventArgs(Keys.Up); Invoke(editor, "OnKeyDown", up);
-                Check(input.TimeText == "00:00" && up.SuppressKeyPress && editor.SelectionStart == 3, "Minute increment did not wrap at midnight.");
-                Invoke(editor, "OnKeyDown", new KeyEventArgs(Keys.Down));
-                Check(input.TimeText == "23:59", "Minute decrement did not wrap at midnight.");
-                editor.Select(0, 2); Invoke(editor, "OnKeyDown", new KeyEventArgs(Keys.Up));
-                Check(input.TimeText == "00:59" && editor.SelectionStart == 0, "Hour increment changed minutes.");
-                Invoke(editor, "OnKeyDown", new KeyEventArgs(Keys.Down));
-                Check(input.TimeText == "23:59", "Hour decrement did not wrap.");
-                var selectAll = new KeyEventArgs(Keys.Control | Keys.A); Invoke(editor, "OnKeyDown", selectAll);
-                Check(editor.SelectionLength == 5 && selectAll.SuppressKeyPress, "Select-all did not select the whole time.");
                 input.Enabled = false;
-                Check(!editor.Enabled, "Disabled time input stayed editable.");
-                Check(input.Controls.Count == 1, "Time input created unnecessary child controls.");
+                Check(!hour.Enabled && !minute.Enabled, "Disabled time selection stayed editable.");
             }
         }
         [STAThread]

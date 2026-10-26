@@ -14,7 +14,7 @@ namespace BingWallpaperLite
         {
             var bitmap = new Bitmap(control.Width + 70, control.Height + 60);
             using (var g = Graphics.FromImage(bitmap))
-            using (var brush = new SolidBrush(dirty ? Style.Green : Color.White))
+            using (var brush = new SolidBrush(dirty ? Style.Accent : Color.White))
             { g.Clear(Color.Magenta); g.FillRectangle(brush, new Rectangle(Offset, control.Size)); }
             return bitmap;
         }
@@ -55,7 +55,7 @@ namespace BingWallpaperLite
                     using (var partial = (Bitmap)clean.Clone())
                     {
                         var clip = new Rectangle(0, 0, Math.Max(1, control.Width / 2), control.Height);
-                        using (var g = Graphics.FromImage(partial)) using (var brush = new SolidBrush(Style.Green))
+                        using (var g = Graphics.FromImage(partial)) using (var brush = new SolidBrush(Style.Accent))
                             g.FillRectangle(brush, new Rectangle(Offset.X, Offset.Y, clip.Width, clip.Height));
                         Paint(control, partial, clip);
                         difference = Difference(clean, partial);
@@ -80,6 +80,8 @@ namespace BingWallpaperLite
             Check(new ActionButton("正在更新…", true) { Enabled = false, Size = new Size(328, 38) });
             Check(new ActionButton("保存设置", false) { Size = new Size(98, 32) });
             Check(new Badge { Text = "自动更新", Size = new Size(106, 28), Busy = false, Paused = false });
+            Check(new Badge { Text = "更新中", Size = new Size(90, 28), Busy = true });
+            Check(new Badge { Text = "已同步", Size = new Size(90, 28) });
             var select = new CompactSelect { Size = new Size(145, 34) }; select.Items.Add("08:05"); select.SelectedIndex = 0; Check(select);
             Check(new PhotoCard { Size = new Size(328, 180) });
             Check(new RoundedCard { Size = new Size(328, 268) });

@@ -24,11 +24,11 @@ namespace BingWallpaperLite
         public string DailyTime { get; set; }
         public int KeepImages { get; set; }
         public bool AutoUpdate { get; set; }
-        public Configuration() { Market = "zh-CN"; Resolution = "UHD"; DailyTime = "08:05"; KeepImages = 1; AutoUpdate = true; }
+        public Configuration() { Market = "zh-CN"; Resolution = "Auto"; DailyTime = "08:05"; KeepImages = 1; AutoUpdate = true; }
         public void Validate()
         {
             if (!Regex.IsMatch(Market ?? "", @"^[a-z]{2}-[A-Z]{2}$")) throw new ArgumentException("Invalid Market.");
-            if (!new[] { "UHD", "1920x1080", "1920x1200", "2560x1440" }.Contains(Resolution))
+            if (!new[] { "Auto", "UHD", "1920x1080", "1920x1200", "2560x1440" }.Contains(Resolution))
                 throw new ArgumentException("Invalid Resolution.");
             if (!Regex.IsMatch(DailyTime ?? "", @"^([01]\d|2[0-3]):[0-5]\d$")) throw new ArgumentException("Invalid DailyTime.");
             if (KeepImages < 1 || KeepImages > 30) throw new ArgumentException("KeepImages must be between 1 and 30.");
@@ -94,6 +94,20 @@ namespace BingWallpaperLite
 
     internal static class WindowsImages
     {
+        internal static string SelectResolution(IEnumerable<Size> monitors)
+        {
+            var sizes = monitors.ToArray();
+            if (sizes.Length == 0 || sizes.Any(s => s.Width <= 0 || s.Height <= 0)) return "UHD";
+            if (sizes.Any(s => s.Height > s.Width || (double)s.Width / s.Height > 2)) return "UHD";
+            foreach (var candidate in new[] { new Size(1920, 1080), new Size(1920, 1200), new Size(2560, 1440) })
+                if (sizes.All(s => s.Width <= candidate.Width && s.Height <= candidate.Height))
+                    return candidate.Width + "x" + candidate.Height;
+            return "UHD";
+        }
+        internal static string ImageResolution(string configured)
+        {
+            return configured == "Auto" ? SelectResolution(System.Windows.Forms.Screen.AllScreens.Select(s => s.Bounds.Size)) : configured;
+        }
         [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern bool SystemParametersInfo(uint action, uint parameter, string value, uint flags);
 
@@ -268,7 +282,8 @@ namespace BingWallpaperLite
                         && !stale.Attributes.HasFlag(FileAttributes.ReparsePoint)) stale.Delete();
 
                 var image = Network.Today(config);
-                string url = "https://www.bing.com" + image.urlbase + "_" + config.Resolution + ".jpg";
+                string resolution = WindowsImages.ImageResolution(config.Resolution);
+                string url = "https://www.bing.com" + image.urlbase + "_" + resolution + ".jpg";
                 string filename = "bing-" + image.startdate + "-" + Files.Hash(url + config.Market);
                 string path = Path.Combine(images, filename + ".jpg");
                 if (state.SourceUrl == url && !string.IsNullOrEmpty(state.LockScreenImage)

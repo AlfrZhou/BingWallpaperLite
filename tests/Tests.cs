@@ -22,6 +22,15 @@ internal static class Tests
         try
         {
             new Configuration().Validate();
+            Assert(new Configuration().Resolution == "Auto", "Default to display resolution detection.");
+            Assert(WindowsImages.SelectResolution(new[] { new Size(1366, 768) }) == "1920x1080", "Cover an HD display.");
+            Assert(WindowsImages.SelectResolution(new[] { new Size(1920, 1200) }) == "1920x1200", "Cover a 16:10 display.");
+            Assert(WindowsImages.SelectResolution(new[] { new Size(1920, 1080), new Size(2560, 1440) }) == "2560x1440", "Account for every monitor.");
+            Assert(WindowsImages.SelectResolution(new[] { new Size(3840, 2160) }) == "UHD", "Use UHD for a 4K display.");
+            Assert(WindowsImages.SelectResolution(new[] { new Size(1080, 1920) }) == "UHD", "Use UHD for a portrait display.");
+            Assert(WindowsImages.SelectResolution(new[] { new Size(2560, 1080) }) == "UHD", "Use UHD for an ultrawide display.");
+            Assert(WindowsImages.SelectResolution(new Size[0]) == "UHD", "Keep a fallback when display detection is unavailable.");
+            Assert(WindowsImages.ImageResolution("1920x1200") == "1920x1200", "Preserve manual resolution.");
             Reject(() => new Configuration { KeepImages = 0 }.Validate(), "Never allow zero retained images.");
             Reject(() => new Configuration { Market = "zh-CN&n=8" }.Validate(), "Reject metadata query injection.");
             Reject(() => new Configuration { DailyTime = "25:70" }.Validate(), "Reject invalid trigger time.");
